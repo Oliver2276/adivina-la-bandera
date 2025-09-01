@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adivinador de Países</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #flag {
+      width: 200px;
+      height: 120px;
+      border: 2px solid #ccc;
+      margin-bottom: 20px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    button.option-btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      min-width: 120px;
+    }
+    button.option-btn:hover {
+      background-color: #2980b9;
+    }
+    button.option-btn.correct {
+      background-color: #27ae60;
+      cursor: default;
+    }
+    button.option-btn.wrong {
+      background-color: #c0392b;
+      cursor: default;
+    }
+    #feedback {
+      font-size: 18px;
+      margin-bottom: 20px;
+      height: 24px;
+    }
+    #score {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #next-btn {
+      padding: 10px 30px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2ecc71;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #next-btn:hover {
+      background-color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Adivina el País</h1>
+  <div id="flag"></div>
+
+  <div class="options" id="options"></div>
+
+  <div id="feedback"></div>
+  <button id="next-btn">Siguiente</button>
+
+  <div id="score"></div>
+
+  <script>
+    const countries = [
+      { name: "Dinamarca", code: "dk" },
+      { name: "Islandia", code: "is" },
+      { name: "Noruega", code: "no" },
+      { name: "Suecia", code: "se" },
+      { name: "Finlandia", code: "fi" },
+      { name: "Alemania", code: "de" },
+      { name: "España", code: "es" },
+      { name: "Italia", code: "it" },
+      { name: "Francia", code: "fr" },
+      { name: "Portugal", code: "pt" },
+      { name: "Guayana Francesa", code: "gf" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    const totalQuestions = countries.length;
+    const flagDiv = document.getElementById('flag');
+    const optionsDiv = document.getElementById('options');
+    const feedbackDiv = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreDiv = document.getElementById('score');
+
+    // Mezclar array
+    function shuffle(array) {
+      for (let i = array.length -1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i+1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Mostrar pregunta
+    function showQuestion() {
+      feedbackDiv.textContent = '';
+      nextBtn.style.display = 'none';
+      optionsDiv.innerHTML = '';
+
+      // Tomamos el país correcto
+      const correctCountry = countries[currentQuestion];
+
+      // Mostramos bandera
+      flagDiv.style.backgroundImage = `url('https://flagcdn.com/w320/${correctCountry.code}.png')`;
+
+      // Creamos opciones (1 correcta + 3 aleatorias)
+      const options = [correctCountry];
+
+      // Filtrar países que no son el correcto
+      const otherCountries = countries.filter(c => c.name !== correctCountry.name);
+
+      shuffle(otherCountries);
+      options.push(...otherCountries.slice(0, 11));
+      shuffle(options);
+
+      options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option.name;
+        btn.classList.add('option-btn');
+        btn.onclick = () => selectAnswer(option.name, correctCountry.name, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    // Cuando el usuario elige una respuesta
+    function selectAnswer(selected, correct, btn) {
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons.forEach(b => b.disabled = true);
+
+      if (selected === correct) {
+        score++;
+        feedbackDiv.textContent = '¡Correcto! 🎉';
+        btn.classList.add('correct');
+      } else {
+        feedbackDiv.textContent = `Incorrecto. La respuesta correcta es ${correct}.`;
+        btn.classList.add('wrong');
+
+        // Marcar la correcta también
+        buttons.forEach(b => {
+          if (b.textContent === correct) b.classList.add('correct');
+        });
+      }
+
+      nextBtn.style.display = 'inline-block';
+      updateScore();
+    }
+
+    // Mostrar siguiente pregunta o resultado final
+    nextBtn.onclick = () => {
+      currentQuestion++;
+      if (currentQuestion < totalQuestions) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function updateScore() {
+      scoreDiv.textContent = `Puntaje: ${score} / ${totalQuestions}`;
+    }
+
+    function showResult() {
+      flagDiv.style.backgroundImage = '';
+      optionsDiv.innerHTML = '';
+      feedbackDiv.textContent = '';
+      nextBtn.style.display = 'none';
+
+      scoreDiv.innerHTML = `<h2>Juego terminado</h2><p>Tu puntaje final es <strong>${score}</strong> de ${totalQuestions}.</p>`;
+    }
+
+    // Iniciar juego
+    shuffle(countries);
+    showQuestion();
+    updateScore();
+  </script>
+</body>
+</html>
