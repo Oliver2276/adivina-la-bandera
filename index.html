@@ -103,7 +103,8 @@
       { name: "Italia", code: "it" },
       { name: "Francia", code: "fr" },
       { name: "Portugal", code: "pt" },
-      { name: "Guayana Francesa", code: "gf" }
+      { name: "Guayana Francesa", code: "gf" },
+      { name: "Oli", code: "oli" } // Cambié "OLI.jpg" a "oli" para que sea diferente
     ];
 
     let currentQuestion = 0;
@@ -115,35 +116,34 @@
     const nextBtn = document.getElementById('next-btn');
     const scoreDiv = document.getElementById('score');
 
-    // Mezclar array
     function shuffle(array) {
-      for (let i = array.length -1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i+1));
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
       return array;
     }
 
-    // Mostrar pregunta
     function showQuestion() {
       feedbackDiv.textContent = '';
       nextBtn.style.display = 'none';
       optionsDiv.innerHTML = '';
 
-      // Tomamos el país correcto
       const correctCountry = countries[currentQuestion];
 
-      // Mostramos bandera
-      flagDiv.style.backgroundImage = `url('https://flagcdn.com/w320/${correctCountry.code}.png')`;
+      // Si el país es "Oli", cargamos imagen local (por ejemplo, en la carpeta)
+      if (correctCountry.name === "Oli") {
+        flagDiv.style.backgroundImage = `url('OLI.jpg')`;
+      } else {
+        flagDiv.style.backgroundImage = `url('https://flagcdn.com/w320/${correctCountry.code}.png')`;
+      }
 
-      // Creamos opciones (1 correcta + 3 aleatorias)
       const options = [correctCountry];
-
-      // Filtrar países que no son el correcto
       const otherCountries = countries.filter(c => c.name !== correctCountry.name);
-
       shuffle(otherCountries);
-      options.push(...otherCountries.slice(0, 11));
+
+      // Añadir sólo 3 opciones más para tener 4 en total
+      options.push(...otherCountries.slice(0, 100));
       shuffle(options);
 
       options.forEach(option => {
@@ -155,7 +155,6 @@
       });
     }
 
-    // Cuando el usuario elige una respuesta
     function selectAnswer(selected, correct, btn) {
       const buttons = document.querySelectorAll('.option-btn');
       buttons.forEach(b => b.disabled = true);
@@ -168,7 +167,6 @@
         feedbackDiv.textContent = `Incorrecto. La respuesta correcta es ${correct}.`;
         btn.classList.add('wrong');
 
-        // Marcar la correcta también
         buttons.forEach(b => {
           if (b.textContent === correct) b.classList.add('correct');
         });
@@ -178,7 +176,6 @@
       updateScore();
     }
 
-    // Mostrar siguiente pregunta o resultado final
     nextBtn.onclick = () => {
       currentQuestion++;
       if (currentQuestion < totalQuestions) {
@@ -201,7 +198,7 @@
       scoreDiv.innerHTML = `<h2>Juego terminado</h2><p>Tu puntaje final es <strong>${score}</strong> de ${totalQuestions}.</p>`;
     }
 
-    // Iniciar juego
+    // Inicializar juego
     shuffle(countries);
     showQuestion();
     updateScore();
